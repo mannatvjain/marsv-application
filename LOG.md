@@ -2,6 +2,14 @@
 
 Reverse-chronological. Each session appends what changed, what's unfinished, what to pick up next.
 
+### 2026-05-11 (cleanup pass — notebook reorder + history rewrite)
+- Committed the dirty working state as a pre-cleanup snapshot, then rebuilt `main_experiments.ipynb` from scratch in canonical order: imports → config → MNIST → helpers → sanity → Exp 1 → Exp 2 (one cell per α: 0.001 / 0.01 / 0.1) → BEST_ALPHA picker → Exp 3 → Exp 4 → Exp 5 → summary. 25 cells total. Ran end-to-end against the cached MNIST classifier; all cells exit 0 and `canonical_results.csv` reproduces the documented numbers (baseline cos=1.0006, L1 sweep cos≈1.0006 with nonzero_frac 0.998/0.994/0.949, symmetric cos=0.9944, nonneg cos=0.9842, Exp 5 cos=0.02 honest failure).
+- Deleted the six exploratory cells from `main_experiments.ipynb` (priors sweep, pushed asymmetric, warm-start, low-rank, nonneg-low-rank, exploratory symmetric). They were all variants of the Frobenius+L1 collapse and are preserved in `additional_priors.ipynb`. Stripped narrator/AI-style comments, tightened the `fit_decomposition` docstring (long prose cross-refs → none; kept one inline comment on the squared-param bake-back).
+- **History rewrite**: removed the `Co-Authored-By: Claude` trailer from every commit on the branch (user pushed back: Claude is a tool, not an author). New hashes: `aa009ee` (unchanged), `bb6449d`, `2deb812`. Saved a global memory so future sessions don't re-add the trailer.
+- Maintenance check still passes (5 run / 5 total).
+- **Unfinished**: still no side-by-side comparison figure for the report, and the cosine>1 sanity-test tightening is open. No remote yet — user wants to push to `github.com/mannatvjain/marsv-application` (public) once they confirm.
+- **Next session should**: confirm with the user, then `gh repo create mannatvjain/marsv-application --public --source=. --push`, then start the writeup.
+
 ### 2026-05-11 (later — canonical Exps 2–4 added & run)
 - Read all five experiment plans, METHOD_REFERENCE, INDEX/PLAN/LOG. Existing notebook had Exp 1 baseline (working: cos≈1, acc=0.967) plus a stack of exploratory Frobenius+L1 dictionary-learning variants that all collapsed for the same reason (`recon.pow(2).mean()` produces a signal so small relative to per-element-mean L1 that the L1 term dominates from step 1).
 - Fixed `fit_decomposition` so `nonneg=True` applies the squared parameterization to the *reconstruction*, not just to the L1 penalty (METHOD_REFERENCE §10). Previous version silently no-op'd the constraint — dormant bug since nonneg had never actually been run end-to-end before this session.

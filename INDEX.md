@@ -21,7 +21,7 @@
 | File | Purpose |
 |------|---------|
 | `main_experiments.ipynb` | **Primary notebook.** MNIST classifier + Exp 1–5 (baseline, L1 sweep, symmetric CP, non-negativity, dictionary learning) |
-| `scratch_prior_sweep.ipynb` | Side scratch: consolidated prior sweep with spatial smoothness, distinctness, and group-lasso priors that aren't (yet) in `main_experiments.ipynb`. Not part of the canonical Exp 1–5 set. |
+| `additional_priors.ipynb` | Additional decomposition experiments beyond the canonical Exps 1–5: spatial-smoothness, distinctness, group-lasso, asymmetric-L1 (atoms vs. code), warm-start from the dictionary-learning init, and low-rank / non-negative variants. |
 | `tensor-decomposition.ipynb` | Side scratch: tiny `toy.Model` exploration of the symmetric interaction tensor |
 | `environment.yml` | Conda env spec (`marsv`) for running the notebook |
 | `experiment_plans/` | One `.md` per experiment + `experiment_template.md`. **All future experiment plans go here.** Template forces 5 targets (short, interpretable, fidelity, sharing, orthogonality) + 3 intervention levels (decomposition family, parameterization, loss) |

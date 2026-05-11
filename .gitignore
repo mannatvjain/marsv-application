@@ -22,3 +22,4 @@ __pycache__/
 # Plot exports
 fig_*.png
 *.csv
+!canonical_results.csv
