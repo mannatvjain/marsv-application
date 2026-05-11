@@ -1,0 +1,28 @@
+name: marsv
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - nbformat
+  - pip:
+      - torch
+      - torchvision
+      - einops
+      - transformers
+      - jaxtyping
+      - pandas
+      - datasets
+      - wandb
+      - accelerate
+      - bidict
+      - nnsight
+      - kornia
+      - plotly
+      - ruff
+      - tqdm
+      - -e ./bilinear-decomposition

@@ -1,0 +1,24 @@
+# Upstream repo (cloned in-tree, has its own .git — bootstrap with the clone command in CLAUDE.md)
+bilinear-decomposition/
+
+# Datasets
+data/
+
+# Jupyter
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Plot exports
+fig_*.png
+*.csv
