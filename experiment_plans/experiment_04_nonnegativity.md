@@ -26,12 +26,12 @@ Components become parts-based: positive masks of stroke regions, no negative lob
 fit_decomposition(model, alpha_l1=BEST_ALPHA, symmetric=False, nonneg=True)
 ```
 
-Inside `fit_decomposition`, when `nonneg=True`: monkey-patch the `Sparse` reconstruction so that the effective factors are `L²`, `R²`. Critical: non-negativity must apply to the *reconstruction*, not just the penalty (per §10 of `METHOD_REFERENCE.md`).
+Inside `fit_decomposition`, when `nonneg=True`: monkey-patch the `Sparse` reconstruction so that the effective factors are `L²`, `R²`. Critical: non-negativity must apply to the *reconstruction*, not just the penalty (per §10 of `claude_context/METHOD_REFERENCE.md`).
 
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `main_experiments.ipynb`
+- [x] Implemented in `experiments/main_experiments.ipynb`
 - [x] Run
 - **Figure**: `figures/fig_nonneg_l1.png`
 

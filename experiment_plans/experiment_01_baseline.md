@@ -36,7 +36,7 @@ Single call: `fit_decomposition(model, alpha_l1=0.0, symmetric=False, nonneg=Fal
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `main_experiments.ipynb`
+- [x] Implemented in `experiments/main_experiments.ipynb`
 - [x] Run
 - **Figure**: `figures/fig_baseline.png`
 

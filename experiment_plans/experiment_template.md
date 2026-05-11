@@ -16,7 +16,7 @@ How this experiment's decomposition approach addresses each of the five targets 
 
 ## 2. Intervention level(s)
 
-Mark which of the three levels (per `METHOD_REFERENCE.md` §6) this experiment touches. An experiment can hit more than one.
+Mark which of the three levels (per `claude_context/METHOD_REFERENCE.md` §6) this experiment touches. An experiment can hit more than one.
 
 - [ ] **Level 1 — Decomposition family.** Mathematical form of the decomposition itself (CP, Tucker, BTD, symmetric CP, overcomplete dictionary, etc.).
 - [ ] **Level 2 — Parameterization.** How `L, R, D` are represented (raw real, squared/non-neg, unit-norm columns, TopK on `D`, convolutional, symmetric tie, etc.).

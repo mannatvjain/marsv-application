@@ -20,7 +20,7 @@
 
 As α increases from 0.001 → 0.1, components transition from dense baseline-like patterns → spatially localized stroke/edge detectors → eventually too sparse to reconstruct `B` well (fidelity collapse). The interesting sweet spot is the largest α at which cosine ≥ 0.9 and accuracy stays within ~2% of baseline.
 
-**Caveat (per `METHOD_REFERENCE.md` §7):** cosine loss is scale-invariant, so the *effective* L1 strength differs from L1-with-Frobenius literature numbers. The sweep characterizes our regime; absolute α values aren't directly comparable across loss choices.
+**Caveat (per `claude_context/METHOD_REFERENCE.md` §7):** cosine loss is scale-invariant, so the *effective* L1 strength differs from L1-with-Frobenius literature numbers. The sweep characterizes our regime; absolute α values aren't directly comparable across loss choices.
 
 ## 4. Method
 
@@ -34,7 +34,7 @@ Three runs, each 200 steps, fresh seed per α. Each run produces its own figure 
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `main_experiments.ipynb`
+- [x] Implemented in `experiments/main_experiments.ipynb`
 - [x] Run
 - **Figure**: `figures/fig_l1_0.001.png`, `figures/fig_l1_0.01.png`, `figures/fig_l1_0.1.png`
 

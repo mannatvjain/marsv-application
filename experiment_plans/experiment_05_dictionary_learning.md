@@ -8,7 +8,7 @@
 |--------|--------------------------------|
 | **Short** — few components for high fidelity | **Primary target via `D` sparsity.** Overcompleteness (R > d) gives the optimizer more atoms than it needs; L1 on `D` then prunes which ones each class actually uses. Effective short-ness emerges from sparse usage, not from a small rank ceiling. |
 | **Interpretable** — each component readable as a discrete feature | **Primary target via `L,R` sparsity + unit-norm.** Olshausen-Field setup: sparse, normalized atoms over natural-ish image patches yield localized stroke/edge templates. |
-| **Fidelity** — cosine(B, B̂) + accuracy preserved | Frobenius loss makes magnitude pressure real, so the α values bite where they should (cf. §7 of `METHOD_REFERENCE.md`). Cosine is still *reported* for cross-experiment comparison. |
+| **Fidelity** — cosine(B, B̂) + accuracy preserved | Frobenius loss makes magnitude pressure real, so the α values bite where they should (cf. §7 of `claude_context/METHOD_REFERENCE.md`). Cosine is still *reported* for cross-experiment comparison. |
 | **Sharing** — features shared across classes encoded once | Inherited from CP, made *visible* by the sparse `D`: a stroke shared between 1/4/7 should now show as one atom with three lit-up `D` entries, instead of three near-duplicate atoms. |
 | **Orthogonality** — within-class non-orthogonality allowed | Same as CP — no orthogonality constraint, and unit-norm columns don't induce one (norm-1 vectors are generally not orthogonal). |
 
@@ -57,7 +57,7 @@ The figure shows the top-K atoms sorted by `‖D[:,r]‖` (importance by usage, 
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `main_experiments.ipynb`
+- [x] Implemented in `experiments/main_experiments.ipynb`
 - [x] Run (degenerate — see Results)
 - **Figure**: `figures/fig_dictionary_learning.png`
 

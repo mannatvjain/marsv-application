@@ -6,7 +6,7 @@
 |--------|--------------------------------|
 | **Short** — few components for high fidelity | **Improved.** The asymmetric CP wastes rank by potentially learning two copies of each true component (one with (L,R), one with (R,L) swap). Tying `L = R` collapses these duplicates, so the same fidelity should be reachable with effectively half the rank. |
 | **Interpretable** — each component readable as a discrete feature | **Improved.** Removing the `L/R` swap ambiguity means each component is unambiguously *one* feature, not "feature plus its swap." Combined with L1, components should be cleaner. |
-| **Fidelity** — cosine(B, B̂) + accuracy preserved | Should match Experiment 2 at the chosen α — `B` is symmetric in (i,j) after symmetrization (§8 of `METHOD_REFERENCE.md`), so symmetric CP is the right family. Asymmetric CP can't exploit anything symmetric CP can't. |
+| **Fidelity** — cosine(B, B̂) + accuracy preserved | Should match Experiment 2 at the chosen α — `B` is symmetric in (i,j) after symmetrization (§8 of `claude_context/METHOD_REFERENCE.md`), so symmetric CP is the right family. Asymmetric CP can't exploit anything symmetric CP can't. |
 | **Sharing** — features shared across classes encoded once | Inherited from CP. Symmetry tie is orthogonal to cross-class sharing. |
 | **Orthogonality** — within-class non-orthogonality allowed | Inherited from CP. L1 still allows non-orthogonal sparse components. |
 
@@ -31,7 +31,7 @@ Inside `fit_decomposition`, when `symmetric=True`: either init a single `V` para
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `main_experiments.ipynb`
+- [x] Implemented in `experiments/main_experiments.ipynb`
 - [x] Run
 - **Figure**: `figures/fig_symmetric_l1.png`
 
