@@ -44,3 +44,14 @@ Concrete implementation: which fields of `fit_decomposition(...)` change, what n
 ## 6. Results / Notes
 
 Filled in after running. Quantitative metrics (cosine sim, accuracy, sparsity stats), qualitative observations (do components look interpretable?), surprises, follow-ups.
+
+## 7. Failure modes / where this won't fully solve the problem
+
+Required section. Even if the experiment runs cleanly and the figure looks good, where do you expect it to fall short? Articulate the structural limits *before* running — this is the contrarian companion to the Hypothesis. Cover at least:
+
+- **Targets it cannot address.** Of the five (short/interpretable/fidelity/sharing/orthogonality), which are out of scope for this approach? Why?
+- **Mechanism-level limitations.** What does the prior *not* enforce that you'd want it to (spatial coherence? class specialization? scale invariance?).
+- **Optimization risks.** Loss-landscape pathologies, dead components, scale degeneracies, seed variance.
+- **What would falsify the design.** If the results came back bad, which assumption would you blame first?
+
+This is the section mentors will read most carefully — it shows you understand what you're doing and aren't selling a one-shot solution.

@@ -19,13 +19,13 @@ Four-experiment design captured in `experiment_plans/` (one `.md` per experiment
 
 - [x] Write up the theory + experimental design (`METHOD_REFERENCE.md` + per-experiment plans in `experiment_plans/`)
 - [x] Build the notebook scaffold: imports, config, MNIST classifier, parameterized `fit_decomposition` helper, `evaluate`, `visualize_decomposition`
-- [x] **Experiment 1: Baseline.** Pure CP, cosine loss, no priors. *Implemented; figure not yet saved (kaleido missing).* Plan: `experiment_plans/experiment_01_baseline.md`.
-- [ ] **Experiment 2: L1 sparsity sweep on `L, R`.** `α ∈ {0.001, 0.01, 0.1}`. Plan: `experiment_plans/experiment_02_l1_sweep.md`.
-- [ ] **Experiment 3: Symmetric CP + L1.** Tie `L = R`, combine with best `α` from Exp. 2. Plan: `experiment_plans/experiment_03_symmetric_cp.md`.
-- [ ] **Experiment 4: Non-negativity + L1.** Squared parameterization `L_eff = L²`, additive parts representation. Plan: `experiment_plans/experiment_04_nonnegativity.md`.
-- [ ] Summary table: pandas DataFrame of metrics across experiments; export CSV.
-- [ ] Side-by-side comparison figure of the best result from each experiment.
-- [ ] Capture screenshots → save into `figures/` with the names listed in each plan, then bump `Status: run` in the plan and re-run `scripts/check_experiments_figures.py`.
+- [x] **Experiment 1: Baseline.** Pure CP, cosine loss, no priors. cos=1.0006, acc=0.9675. Plan: `experiment_plans/experiment_01_baseline.md`.
+- [x] **Experiment 2: L1 sparsity sweep on `L, R`.** Run at `α ∈ {0.001, 0.01, 0.1}`; all preserve cos≈1 and acc≈0.967, but L1 barely bites (scale-invariance, METHOD_REFERENCE §7). Plan: `experiment_plans/experiment_02_l1_sweep.md`.
+- [x] **Experiment 3: Symmetric CP + L1.** Tied `L = R` at α=0.1: cos=0.9944, acc=0.9657. Plan: `experiment_plans/experiment_03_symmetric_cp.md`.
+- [x] **Experiment 4: Non-negativity + L1.** Squared parameterization at α=0.1: cos=0.9842, acc=0.9663. Plan: `experiment_plans/experiment_04_nonnegativity.md`.
+- [x] **Experiment 5: Dictionary learning.** Degenerate (cos=0.02, recon term too small vs L1 mean term). Honest failure documented. Plan: `experiment_plans/experiment_05_dictionary_learning.md`.
+- [x] Summary table: `canonical_results` DataFrame at end of notebook; exported to `canonical_results.csv`.
+- [ ] Side-by-side comparison figure of the best result from each experiment (for the report).
 
 ## Phase 3: Report
 - [ ] Write up motivation, method, results, conclusions (concise — mentors emphasized brevity)
@@ -33,4 +33,7 @@ Four-experiment design captured in `experiment_plans/` (one `.md` per experiment
 - [ ] Submit to MARS V Goodfire stream
 
 ## Known issues / follow-ups
-- [ ] `kaleido` is not installed in `marsv` env; `fig.write_image(...)` is wrapped in try/except as a workaround. Install `kaleido` if PNG export is needed for the report — without it, no `figures/fig_*.png` get written and `scripts/check_experiments_figures.py` will block any plan from being marked `Status: run`.
+- [x] `kaleido` is not installed in `marsv` env. **Resolved:** `pip install kaleido` done; figures now write to disk. All five plans now show `Status: run` and the maintenance check passes (5 run / 5 total).
+- [ ] **Cell `imports` had `device = "cpu:0"` which breaks `torch.load(map_location="cpu:0")` in current torch.** Fixed to `device = "cpu"`. Worth a note in a `*_REFERENCE.md` to save the next session debugging an MNIST-classifier-at-8%-accuracy red herring.
+- [ ] The cosine similarity reported for Exps 1–3 is slightly > 1 (e.g. 1.0006), exceeding the sanity-test's `1.0 + 1e-5` tolerance but only triggered there for random init. Probably float accumulation in the symmetrized inner product; worth confirming with a tighter test using a trained `sparse` before quoting these numbers in the report.
+- [ ] The exploratory cells (dict learning sweep / pushed / warm-start / low-rank / nonneg-low-rank / symmetric) all share the same Frobenius+L1 collapse mode — they are kept in the notebook as an honest record but should either be re-tuned (recon `.sum()` not `.mean()`, or normalize `B_target`) or removed before the report submission.

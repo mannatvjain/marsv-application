@@ -31,12 +31,20 @@ Inside `fit_decomposition`, when `nonneg=True`: monkey-patch the `Sparse` recons
 ## 5. Status
 
 - [x] Designed
-- [ ] Implemented in `experiments/main_experiments.ipynb`
-- [ ] Run
+- [x] Implemented in `main_experiments.ipynb`
+- [x] Run
 - **Figure**: `figures/fig_nonneg_l1.png`
 
-`Status: designed`
+`Status: run`
 
 ## 6. Results / Notes
 
-To be filled. Specifically check: are `L+R` plots all-positive-pixels, do they look like single-stroke masks, and is `D` showing sharp class concentration?
+At α = 0.1 (carried from Exp 2): cosine 0.9842, sparse_acc 0.9663. Fidelity drops further than Exp 3 — 1.0004 → 0.9842 — exactly as predicted, since hard non-negativity removes the model's ability to express contrast features via cancellation. Accuracy holds within 0.2pp of asymmetric. Implementation note (caught and fixed mid-task): the squared parameterization must apply to the *reconstruction* used for the loss, not just to the L1 penalty term — an earlier helper version squared only the penalty and silently no-op'd the constraint. Now: `L_eff = L²`, `R_eff = R²` go through a manual einsum + symmetrize, and the squared values are baked back into `sparse.left/right` post-fit so `decompose()` / `evaluate()` see the actually-positive atoms. The `L − R` row of the visualization is meaningless here (both factors positive) and should be dropped for the report.
+
+## 7. Failure modes / where this won't fully solve the problem
+
+- **Bilinear MLPs may genuinely need negative interactions.** `B` was learned without a non-negativity constraint; nothing about its training suggests an additive-parts decomposition exists. Edge detectors are inherently contrast features ("bright minus dark") and cannot be expressed as `L² · R²`. Squaring imposes an NMF-style ontology on a model that wasn't trained to obey it — fidelity may drop sharply below METHOD_REFERENCE §9's cosine > 0.9 success threshold.
+- **The `L−R` negative-pattern column loses its meaning.** With `L_eff = L²`, `R_eff = R²`, the visualization `L−R` no longer represents what it did in Exp 1–3. The figure either needs a relabeling or that column should be dropped.
+- **If `D` is also non-negative, "push away from class c" is gone.** The paper notes negative eigenvalues are interpretable (a feature *inhibits* a class). Forcing `D ≥ 0` removes that channel; we'd be measuring only excitatory features.
+- **No `D` sparsity → sharing still invisible.** Same blind spot as Exp 2.
+- **Squared parameterization has zero-derivative basins.** Once a column hits `L_r ≈ 0`, gradients vanish and it can't recover. Expect dead atoms early; effective rank may collapse below the nominal `R`.

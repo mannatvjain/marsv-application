@@ -20,7 +20,8 @@
 
 | File | Purpose |
 |------|---------|
-| `main_experiments.ipynb` | **Primary notebook.** MNIST classifier + the four CP decomposition experiments |
+| `main_experiments.ipynb` | **Primary notebook.** MNIST classifier + Exp 1–5 (baseline, L1 sweep, symmetric CP, non-negativity, dictionary learning) |
+| `scratch_prior_sweep.ipynb` | Side scratch: consolidated prior sweep with spatial smoothness, distinctness, and group-lasso priors that aren't (yet) in `main_experiments.ipynb`. Not part of the canonical Exp 1–5 set. |
 | `tensor-decomposition.ipynb` | Side scratch: tiny `toy.Model` exploration of the symmetric interaction tensor |
 | `environment.yml` | Conda env spec (`marsv`) for running the notebook |
 | `experiment_plans/` | One `.md` per experiment + `experiment_template.md`. **All future experiment plans go here.** Template forces 5 targets (short, interpretable, fidelity, sharing, orthogonality) + 3 intervention levels (decomposition family, parameterization, loss) |
@@ -28,6 +29,7 @@
 | `experiment_plans/experiment_02_l1_sweep.md` | L1 on `L,R`, sweep α ∈ {0.001, 0.01, 0.1} |
 | `experiment_plans/experiment_03_symmetric_cp.md` | Symmetric CP (`L=R`) + best α |
 | `experiment_plans/experiment_04_nonnegativity.md` | Squared parameterization (`L_eff=L²`) + L1 |
+| `experiment_plans/experiment_05_dictionary_learning.md` | Overcomplete CP + unit-norm columns + Frobenius loss + L1 on `L,R,D` |
 | `figures/` | Exported plots (`fig_<experiment>.png`). Referenced from `experiment_plans/`. |
 | `scripts/check_experiments_figures.py` | Maintenance check: every plan with `Status=run` must have its figure on disk. Wired into the Stop hook. |
 | `.claude/settings.json` | Claude Code settings — Stop hook runs the maintenance check at end of every session. |

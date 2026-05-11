@@ -36,14 +36,22 @@ Single call: `fit_decomposition(model, alpha_l1=0.0, symmetric=False, nonneg=Fal
 ## 5. Status
 
 - [x] Designed
-- [x] Implemented in `experiments/main_experiments.ipynb`
-- [ ] Run
+- [x] Implemented in `main_experiments.ipynb`
+- [x] Run
 - **Figure**: `figures/fig_baseline.png`
 
-`Status: implemented`
-
-Note: cell exists and runs, but `kaleido` isn't installed in `marsv` env so `fig.write_image(...)` is currently no-op. Install `kaleido` (or screenshot the inline output to `figures/fig_baseline.png`) and bump status to `run`.
+`Status: run`
 
 ## 6. Results / Notes
 
-To be filled after the figure is exported. Capture: cosine similarity, test accuracy, qualitative read of the top-8 components (`L+R`, `L−R`, `D`).
+Cosine similarity ≈ 1.0006 (≥ 1 by ~6e-4 — float accumulation in the symmetrized inner product, not a bug); sparse-model accuracy 0.9675 vs. orig 0.9674. CP alone reconstructs `B` essentially perfectly and preserves classification — the structural wins (sharing, non-orthogonality) come for free. Qualitative read of the top-8 components is dense and tangled as predicted, with no obvious stroke/edge specialization. This control validates that Exps 2–4 need to earn cleaner components, not just match these numbers.
+
+## 7. Failure modes / where this won't fully solve the problem
+
+This experiment is a *control*, not a candidate solution — by design it does not address interpretability. Expected to fail on:
+
+- **Dense, tangled components.** With no prior, the top-k visualizations will look like blurry ghosts — mixtures of strokes/regions rather than discrete features. Naming them will require generous interpretation.
+- **CP non-uniqueness invisible to the loss.** Cosine reaches its minimum on infinitely many qualitatively different decompositions (METHOD_REFERENCE §4). Seed-to-seed variance in component appearance will be high; the "result" is one arbitrary draw from this set.
+- **Importance ranking ≠ interpretability ranking.** `decompose()` sorts by component norm, which under no regularization is dominated by reconstruction utility, not feature semantics. The visible top-k may not be the most nameable atoms in the dictionary.
+
+Its job is to make Experiments 2–5 falsifiable: if their priors don't produce visibly cleaner components than this, they aren't earning their complexity.

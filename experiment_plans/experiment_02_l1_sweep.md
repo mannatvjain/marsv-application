@@ -34,12 +34,26 @@ Three runs, each 200 steps, fresh seed per α. Each run produces its own figure 
 ## 5. Status
 
 - [x] Designed
-- [ ] Implemented in `experiments/main_experiments.ipynb`
-- [ ] Run
+- [x] Implemented in `main_experiments.ipynb`
+- [x] Run
 - **Figure**: `figures/fig_l1_0.001.png`, `figures/fig_l1_0.01.png`, `figures/fig_l1_0.1.png`
 
-`Status: designed`
+`Status: run`
 
 ## 6. Results / Notes
 
-To be filled after running. Per α: cosine, accuracy, mean nonzero fraction of `L+R`, qualitative interpretability read. Pick the best α to feed Experiments 3 and 4.
+| α     | cosine  | sparse_acc | nonzero(L,R) |
+|-------|---------|------------|--------------|
+| 0.001 | 1.0006  | 0.9675     | 0.998        |
+| 0.01  | 1.0006  | 0.9677     | 0.994        |
+| 0.1   | 1.0004  | 0.9677     | 0.949        |
+
+Quantitatively the sweep barely moves anything — even at α = 0.1, only ~5% of `L,R` entries fall below the 1e-4 threshold, and accuracy is unchanged. This is the scale-invariance issue from METHOD_REFERENCE §7 made visible: cosine loss + per-element-mean L1 means α=0.1 is not actually "10× more pressure than 0.01"; the optimizer is free to inflate `L,R` magnitudes to make the L1 mean small without paying any reconstruction cost. To get real bite we'd need either Hoyer-square (scale-invariant) or a switch to Frobenius — Exp 5's territory. `BEST_ALPHA = 0.1` is selected mechanically (largest α meeting the cosine/accuracy bar), but should be read as "least-weak" rather than "best".
+
+## 7. Failure modes / where this won't fully solve the problem
+
+- **Cosine-loss scale degeneracy (METHOD_REFERENCE §7).** The optimizer can shrink `L,R` and grow `D` (or vice versa) without affecting cosine fit, neutralizing L1's effective pressure. α may need to be 10–100× literature numbers to bite — but the actual ratio is unknowable without unit-norm or Frobenius loss. Exp 5 is the version that fixes this.
+- **No L1 on `D` → sharing is invisible.** Even if `L,R` get sparse, every atom still has free rein to touch every class. We can't tell which atoms are *shared* vs. class-specific from the L1-on-LR output alone. The "sharing" target gets a structural pass from CP but no visible signal from this prior.
+- **Complete rank (R = d = 64) leaves no room to specialize.** With as many atoms as input dimensions, the optimizer must cram every feature into the basis. Classical dictionary learning is overcomplete for exactly this reason.
+- **L1 enforces sparsity, not spatial coherence.** Sparse atoms can be "scattered noise pixels" rather than "strokes" — L1 doesn't care if the nonzero pixels are adjacent. A spatial-smoothness penalty would address this.
+- **No unit-norm constraint.** Atom magnitudes leak into `D`; what you see in `L+R` heatmaps is not directly comparable across components.

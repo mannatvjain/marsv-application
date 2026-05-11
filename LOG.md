@@ -2,6 +2,16 @@
 
 Reverse-chronological. Each session appends what changed, what's unfinished, what to pick up next.
 
+### 2026-05-11 (later — canonical Exps 2–4 added & run)
+- Read all five experiment plans, METHOD_REFERENCE, INDEX/PLAN/LOG. Existing notebook had Exp 1 baseline (working: cos≈1, acc=0.967) plus a stack of exploratory Frobenius+L1 dictionary-learning variants that all collapsed for the same reason (`recon.pow(2).mean()` produces a signal so small relative to per-element-mean L1 that the L1 term dominates from step 1).
+- Fixed `fit_decomposition` so `nonneg=True` applies the squared parameterization to the *reconstruction*, not just to the L1 penalty (METHOD_REFERENCE §10). Previous version silently no-op'd the constraint — dormant bug since nonneg had never actually been run end-to-end before this session.
+- Added canonical Exps 2 (L1 sweep over `ALPHAS_L1`), 3 (symmetric `L = R` at best-α), 4 (nonneg via `L_eff = L²` at best-α), and a `canonical_results` summary DataFrame cell at the bottom of `main_experiments.ipynb`. Removed four empty-cell cruft entries. Preserved the user's exploratory cells.
+- Installed `kaleido` into the `marsv` env. All five figures now write to `figures/` on disk; maintenance check now reports 5 run / 5 total. Bumped each plan's Status to `run` and wrote real Results / Notes sections.
+- **Caught a sharp footgun**: cell `imports` had `device = "cpu:0"`. PyTorch tensor placement accepts that string but `torch.load(map_location="cpu:0")` does not — the cached MNIST model fails to load, the cell raises, and (because nbconvert ran with `allow_errors=True`) every downstream cell silently runs against a random-init `model` with `orig_acc ≈ 0.08`. First nbconvert pass produced garbage results that looked plausible until I checked `orig_acc`. Fixed to `device = "cpu"`. Worth a `*_REFERENCE.md` note next session.
+- Canonical results: baseline cos=1.0006 acc=0.9675 | L1 α=0.001 cos=1.0006 nz=0.998 | α=0.01 cos=1.0006 nz=0.994 | α=0.1 cos=1.0004 nz=0.949 | symmetric+L1 cos=0.9944 acc=0.9657 | nonneg+L1 cos=0.9842 acc=0.9663. Exp 5 still degenerate (cos=0.02) — left as honest failure.
+- **Unfinished**: the side-by-side comparison figure for the report; tightening the cosine-sim sanity test to assert on a *trained* `sparse` (current test only checks random init); deciding whether to re-tune or remove the exploratory cells before submission.
+- **Next session should**: build the comparison figure, then start the actual MARS V report writeup. The notebook now has everything needed.
+
 ### 2026-05-11 (same session — experiment_plans + figures + maintenance check)
 - Authored the contents of `experiment_plans/` (template + four filled-in plans for Exps 1–4) and `scripts/check_experiments_figures.py` (the maintenance check). Created `figures/` (just `.gitkeep` for now) and `.claude/settings.json` (Stop hook running the check). Note: an earlier entry below misattributed this infra to "the user adding it in parallel" — it was authored in this session at the user's direction.
 - Each experiment plan addresses the five evaluation targets (short, interpretable, fidelity, sharing, orthogonality) and tags which of the three intervention levels (decomposition family / parameterization / loss) it touches.

@@ -29,7 +29,16 @@ where `B` is the third-order **interaction tensor**:
 B[c,i,j] = Σ_h W_P[c,h] · W_L[h,i] · W_R[h,j]
 ```
 
-This tensor fully describes the layer's computation. For an MNIST classifier in embedding space, `B` has shape `(10, d, d)` where `d` is the embedding dimension.
+This tensor fully describes the layer's computation. For our MNIST classifier `B` has shape `(10, 784, 784)` — **pixel space, not embedding space.** The trained model holds `W_E` (embedding), `W_L, W_R` (bilinear up-projections in embedding space), and `W_U` (unembedding). The `Sparse` class (`src/image/sparse.py:48-53`) folds `W_E` into `W_L, W_R` before contracting: `B[c,i,j] = Σ_h W_U[c,h] · (W_L W_E)[h,i] · (W_R W_E)[h,j]`. So `Sparse` defaults to `d_input=784` and decomposes pixel-space `B` directly. The model's own `decompose()` method does eigendecomp in embedding space and then projects eigenvectors back through `W_E` — different code path, same downstream visualization.
+
+There is no precomputed `model.b` attribute. To get `B` as a tensor (e.g. for Frobenius loss):
+
+```python
+wl, wr = model.w_lr[0].unbind()
+wl, wr = wl @ model.w_e, wr @ model.w_e
+B_target = einsum(model.w_u, wl, wr, "c o, o i, o j -> c i j")
+B_target = 0.5 * (B_target + B_target.mT)
+```
 
 ## 2. The paper this builds on
 
@@ -90,6 +99,8 @@ This formulation addresses both failure modes structurally:
 - **Orthogonality** is solved because no constraint requires `L_r ⊥ L_{r'}`. Components can overlap in input space.
 
 What is *not* solved by this formulation alone: making individual components interpretable. Without additional structure, the optimizer finds a decomposition that reconstructs `B` but produces dense, tangled components. The work of the task is adding priors that shape the components toward interpretability.
+
+A second problem emerges from removing orthogonality: **CP decompositions are non-unique.** Eigendecomposition of a symmetric matrix has one answer (up to sign and ordering); CP has infinitely many decompositions of any given tensor, all reconstructing `B` equally well. Different random seeds give qualitatively different decompositions — some clean and parts-based, some tangled and dense — even at identical reconstruction fidelity. Practical consequence: seed-controlled re-runs are necessary for debugging, and qualitative differences between experiments must be checked across seeds before being attributed to the prior rather than to initialization noise.
 
 ## 5. The skeleton notebook (baseline approach)
 
@@ -199,14 +210,16 @@ Cells in order (in `main_experiments.ipynb`):
 2. Configuration block: `RANK`, `N_STEPS`, `LR`, `SEED`, `K_VIS`, `ALPHAS_L1`. Single point of control.
 3. Plotly renderer fix (one-line workaround for inline rendering).
 4. Data loading and MNIST classifier training.
-5. Helper functions: `fit_decomposition(model, **kwargs)`, `evaluate(sparse, model, test)`, `visualize_decomposition(sparse, title, save_path)`. Refactored so each experiment is a one-line call.
-6. Storage list `results` for collecting metrics and figure paths.
-7. Markdown + experiment 1 (baseline).
-8. Markdown + experiment 2 (L1 sweep, looped over alphas).
-9. Markdown + experiment 3 (symmetric CP).
-10. Markdown + experiment 4 (non-negativity).
-11. Summary cell: pandas DataFrame of all metrics, exported to CSV.
-12. Optional: side-by-side comparison figure of the best result from each experiment.
+5. Helper functions: `fit_decomposition(model, **kwargs)`, `evaluate(sparse, model, test)`, `visualize_decomposition(sparse, title, save_path)`, `reconstruct_B_target(model)`. Refactored so each experiment is a one-line call.
+6. **Sanity test for `sparse.similarity(model)`.** Verifies the upstream cosine implementation matches a hand-rolled cosine on the symmetrized `B` and `B̂`; also confirms scale-invariance (the property that drives the L1 degeneracy of §7). Runs as an `assert`-guarded cell — if the upstream API ever changes, this catches it before any experiment reports a misleading number.
+7. Storage list `results` for collecting metrics and figure paths.
+8. Markdown + experiment 1 (baseline).
+9. Markdown + experiment 2 (L1 sweep, looped over alphas).
+10. Markdown + experiment 3 (symmetric CP).
+11. Markdown + experiment 4 (non-negativity).
+12. Markdown + experiment 5 (honest dictionary learning: overcomplete + unit-norm + Frobenius + L1 on L,R,D).
+13. Summary cell: pandas DataFrame of all metrics, exported to CSV.
+14. Optional: side-by-side comparison figure of the best result from each experiment.
 
 ## 12. Practices applied
 
@@ -241,7 +254,8 @@ The skeleton's CP formulation is the starting point; the experiments here test w
 
 ## 14. Implementation gotchas
 
-- The `Sparse` class parameters are likely named `sparse.l`, `sparse.r`, `sparse.d`. If experiments fail with AttributeError, check `list(dict(sparse.named_parameters()).keys())` to confirm.
+- The `Sparse` class parameters are named `sparse.left`, `sparse.right`, `sparse.down` (verified from `bilinear-decomposition/src/image/sparse.py`). An earlier draft of this doc guessed `.l/.r/.d` — the bug was dormant in the baseline (no priors fire) but broke L1, symmetric, non-negative, and dictionary-learning paths. If you see AttributeError on `sparse.l`, this is the cause.
+- The original interaction tensor `B` is *not* a stored attribute of `Model`. It's reconstructed on demand inside `Sparse.similarity()` from `model.w_lr`, `model.w_e`, `model.w_u` and then symmetrized. The notebook exposes this construction as `reconstruct_B_target(model)` so Frobenius-loss experiments can train against the same tensor that cosine training implicitly targets.
 - Muon is a less common optimizer designed for matrix-shaped parameters. The skeleton uses it; we keep it. Substituting Adam may change convergence but should not alter the conclusions.
 - `decompose()` returns components sorted and normalized by importance. The visualization shows the top `k=8`.
 - `Sparse.from_config(rank=R)` initializes with random factors. The seed is set globally before each fit for reproducibility.
@@ -249,7 +263,42 @@ The skeleton's CP formulation is the starting point; the experiments here test w
 - All experiments use the same trained MNIST classifier. We do not re-train the underlying model between experiments — only re-fit the decomposition on top of the fixed `B` tensor.
 - Plotly figure image export uses the `kaleido` engine. If `pip install kaleido` hasn't run, `fig.write_image(...)` raises `ValueError`. Pass `save_path=None` (or guard the call) to fall back to inline display.
 
-## 15. Future directions
+## 15. Troubleshooting components that look wrong
+
+When a prior produces components that don't match the target ("localized, nameable, parts-based"), the diagnostic shape tells you which knob to move. Print `(sparse.left.abs() < 1e-4).float().mean()` to quantify actual sparsity before adjusting.
+
+**Components look like baseline (dense, scattered, every pixel active).** L1 isn't biting. Either α is too low or L1 on `D` is needed in addition.
+- Raise α (try 0.05 or 0.1)
+- Add L1 on `D` (`β · ‖D‖₁`)
+- If using cosine loss, recall §7 — L1 strength couples with optimizer's free choice of scale; effective regularization may be weaker than α suggests
+
+**Components have collapsed (mostly zero, few survive, similarity crashes).** Prior too strong.
+- Lower α (try 0.01 or 0.005)
+- Reduce rank (32 or 16) — fewer components, each has to carry more load
+- Check `sparse.similarity(model)` — if near zero, the optimizer gave up on reconstruction
+
+**Components are localized but uninterpretable (random patches, not stroke-shaped).** L1 doesn't enforce *spatial coherence*, just sparsity. Three options:
+- Train the underlying MNIST classifier with more Gaussian noise (`std=0.5` or `0.6`). The eigenvectors get smoother, and CP inherits the smoothness.
+- Add a spatial smoothness penalty: reshape `L_r` to 28×28, penalize `Σ (L[i+1,j] − L[i,j])² + (L[i,j+1] − L[i,j])²`
+- Accept it. The model may genuinely use non-stroke features; honest reporting beats fake success.
+
+**Shapes look right but `D` bars are diffuse (every component touches every class).** Class specialization needs its own prior.
+- Add L1 on `D`
+- Try TopK on `D` (`D[c,:] = TopK_K(D̃[c,:])`) for hard specialization
+- Check whether components are near-duplicates of each other — if so, add a distinctness penalty (`δ Σ_{r≠r'} ⟨L_r, L_{r'}⟩²`)
+
+## 16. References
+
+- **Pearce, Dooms, Rigg, Oramas, Sharkey (ICLR 2025)** — "Bilinear MLPs enable weight-based mechanistic interpretability." The paper this project builds on; §6 (Limitations) explicitly motivates the sparse dictionary learning direction.
+- **Sharkey (2023)** — "A technical note on bilinear layers for interpretability." Introduces the bilinear-tensor framework `B` used here.
+- **Kolda & Bader (2009)** — "Tensor Decompositions and Applications," SIAM Review. Canonical reference for CP, Tucker, symmetric CP, BTD.
+- **Lee & Seung (1999)** — Original NMF paper. Source of the "non-negativity → parts-based representation" intuition motivating Experiment 4.
+- **Hoyer (2004)** — "Non-negative Matrix Factorization with Sparseness Constraints." Source of the Hoyer-square sparsity measure (`‖x‖₁² / ‖x‖₂²`).
+- **Olshausen & Field (1996)** — "Emergence of simple-cell receptive field properties by learning a sparse code for natural images." Classical result that sparse dictionary learning on natural images yields Gabor-like features — the analogue we hope for on MNIST.
+- **Bricken et al. (2023)** — Anthropic "Towards Monosemanticity." Sparse autoencoders on language-model activations; precedent for sparsity-as-interpretability-prior at scale.
+- **Elhage et al. (2021)** — "A Mathematical Framework for Transformer Circuits." Defines the circuit framework that bilinear MLPs slot into.
+
+## 17. Future directions
 
 If extending beyond the time-budgeted scope:
 - Sweep rank `R` at fixed prior strength to characterize the rank-fidelity Pareto frontier.

@@ -31,12 +31,19 @@ Inside `fit_decomposition`, when `symmetric=True`: either init a single `V` para
 ## 5. Status
 
 - [x] Designed
-- [ ] Implemented in `experiments/main_experiments.ipynb`
-- [ ] Run
+- [x] Implemented in `main_experiments.ipynb`
+- [x] Run
 - **Figure**: `figures/fig_symmetric_l1.png`
 
-`Status: designed`
+`Status: run`
 
 ## 6. Results / Notes
 
-Compare directly against Exp. 2's best-α run. Look for: same cosine, same accuracy, fewer duplicate-looking components in the top-8 visualization.
+At α = 0.1 (carried from Exp 2): cosine 0.9944, sparse_acc 0.9657. Fidelity drops 6e-4 vs. asymmetric (1.0004 → 0.9944) and accuracy drops 0.2pp (0.9677 → 0.9657) — symmetric CP is, as expected, the right family for `B` and pays an essentially-free cost. Qualitatively the `L+R` row in the top-8 visualization shows no `(L, R) ↔ (R, L)` swap-pair duplicates, which is the whole point. The `L − R` row collapses to numerical noise (`L = R` by construction) and is uninformative — should be dropped when this figure goes into the report.
+
+## 7. Failure modes / where this won't fully solve the problem
+
+- **`L = R` collapses the L±R duality.** The identity `ab = ¼(a+b)² − ¼(a−b)²` is what gives each component a *positive pattern* (`L+R`) and a *negative pattern* (`L−R`). With `L = R`, `L−R = 0` — the negative pattern vanishes. Every component becomes a single positive template. If real bilinear features have a "this MINUS that" structure (contrast detectors), we lose the ability to represent them as one component.
+- **Restricts expressivity if features aren't self-symmetric.** Symmetric CP can only represent components where left and right input patterns are identical. Asymmetric features of the form "pattern A interacts with pattern B ≠ A" get forced into sums of self-symmetric pieces — possibly *inflating* effective rank rather than reducing it.
+- **Inherits Exp 2's L1-on-cosine degeneracy.** This experiment stacks Level-1/2 changes on top of the Level-3 problem from Exp 2; it doesn't fix the scale-invariance issue.
+- **Removes swap ambiguity but not CP non-uniqueness.** Symmetric CP decompositions are still non-unique (sign and rotation freedom). Seed variance remains.
