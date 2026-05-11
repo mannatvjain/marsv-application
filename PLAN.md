@@ -15,17 +15,17 @@ See `METHOD_REFERENCE.md` for the full theory and experimental design. This file
 
 ## Phase 2: Experiment (1–2h)
 
-Four-experiment design captured in `METHOD_REFERENCE.md` §10. Each modifies the baseline at one or more of the three levels (decomposition family / parameterization / loss).
+Four-experiment design captured in `experiment_plans/` (one `.md` per experiment, copied from `experiment_plans/experiment_template.md`). Each plan addresses the five targets (short, interpretable, fidelity, sharing, orthogonality) and the three intervention levels (decomposition family / parameterization / loss). See `METHOD_REFERENCE.md` for the underlying theory.
 
-- [x] Write up the theory + experimental design (`METHOD_REFERENCE.md`)
+- [x] Write up the theory + experimental design (`METHOD_REFERENCE.md` + per-experiment plans in `experiment_plans/`)
 - [x] Build the notebook scaffold: imports, config, MNIST classifier, parameterized `fit_decomposition` helper, `evaluate`, `visualize_decomposition`
-- [x] **Experiment 1: Baseline.** Pure CP, cosine loss, no priors. Sharing-only result.
-- [ ] **Experiment 2: L1 sparsity sweep on `L, R`.** `α ∈ {0.001, 0.01, 0.1}`. Spatial localization vs. fidelity trade-off.
-- [ ] **Experiment 3: Symmetric CP + L1.** Tie `L = R`, combine with best `α` from Exp. 2.
-- [ ] **Experiment 4: Non-negativity + L1.** Squared parameterization `L_eff = L²`, additive parts representation.
+- [x] **Experiment 1: Baseline.** Pure CP, cosine loss, no priors. *Implemented; figure not yet saved (kaleido missing).* Plan: `experiment_plans/experiment_01_baseline.md`.
+- [ ] **Experiment 2: L1 sparsity sweep on `L, R`.** `α ∈ {0.001, 0.01, 0.1}`. Plan: `experiment_plans/experiment_02_l1_sweep.md`.
+- [ ] **Experiment 3: Symmetric CP + L1.** Tie `L = R`, combine with best `α` from Exp. 2. Plan: `experiment_plans/experiment_03_symmetric_cp.md`.
+- [ ] **Experiment 4: Non-negativity + L1.** Squared parameterization `L_eff = L²`, additive parts representation. Plan: `experiment_plans/experiment_04_nonnegativity.md`.
 - [ ] Summary table: pandas DataFrame of metrics across experiments; export CSV.
 - [ ] Side-by-side comparison figure of the best result from each experiment.
-- [ ] Capture screenshots for the report.
+- [ ] Capture screenshots → save into `figures/` with the names listed in each plan, then bump `Status: run` in the plan and re-run `scripts/check_experiments_figures.py`.
 
 ## Phase 3: Report
 - [ ] Write up motivation, method, results, conclusions (concise — mentors emphasized brevity)
@@ -33,4 +33,4 @@ Four-experiment design captured in `METHOD_REFERENCE.md` §10. Each modifies the
 - [ ] Submit to MARS V Goodfire stream
 
 ## Known issues / follow-ups
-- [ ] `kaleido` is not installed in `marsv` env; `fig.write_image(...)` is wrapped in try/except as a workaround. Install `kaleido` if PNG export is needed for the report.
+- [ ] `kaleido` is not installed in `marsv` env; `fig.write_image(...)` is wrapped in try/except as a workaround. Install `kaleido` if PNG export is needed for the report — without it, no `figures/fig_*.png` get written and `scripts/check_experiments_figures.py` will block any plan from being marked `Status: run`.

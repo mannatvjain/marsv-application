@@ -16,6 +16,10 @@ marsv-application/
 ├── main_experiments.ipynb              # primary notebook: MNIST + the four CP decomposition experiments
 ├── tensor-decomposition.ipynb          # side scratch: toy.Model exploration of the symmetric interaction tensor
 ├── METHOD_REFERENCE.md                 # theory + experimental design — read before editing the notebook
+├── experiment_plans/                   # ALL future experiment plans go here. One .md per experiment + experiment_template.md
+├── figures/                            # exported plots (fig_<experiment>.png). Referenced from experiment_plans/
+├── scripts/check_experiments_figures.py  # maintenance check: every plan with Status=run must have its figure on disk
+├── .claude/settings.json               # Stop hook runs the maintenance check at end of every session
 ├── environment.yml                     # conda env spec
 ├── bilinear-decomposition/             # upstream repo (read-only). Installed -e into env.
 │   ├── tutorials/  0_introduction, 1_image, 2_language
@@ -26,11 +30,22 @@ marsv-application/
 
 Flow: read tutorials 0+1 → understand bilinear MLP eigendecomposition → identify why orthogonality of eigenvectors yields "superposed" features → propose & implement a non-orthogonal tensor decomposition (sparsity is *one* prior, not the only one) → run on MNIST → screenshot interpretable components → write up.
 
+### Notebook naming (memorize this — easy to confuse)
+- **Our primary notebook** = `main_experiments.ipynb` at the repo root. All real work lives here.
+- **"0-tutorial"** = `bilinear-decomposition/tutorials/0_introduction.ipynb` (the first tutorial — bilinear MLP basics).
+- **"1-images"** = `bilinear-decomposition/tutorials/1_image.ipynb` (the *other* tutorial — MNIST workflow).
+- **"0-exps"** = `bilinear-decomposition/exercises/0_decomposition.ipynb` — **Thomas's code**, the exercise skeleton we're extending. (Thomas Dooms is one of our two mentors.)
+
+When the user says "the tutorial" they mean 0-tutorial; "the other tutorial" or "the image one" is 1-images; "Thomas's code" or "the exercise" is 0-exps.
+
 ## Conventions
 - **No LaTeX in chat.** Claude Code does not render LaTeX, so `$...$`, `\mathbf{}`, etc. show up as raw source. Use Unicode (ρ, σ, π, ·, ², ∑, ∫, ∂) or code blocks with ASCII math instead. (LaTeX is fine inside Anki/Obsidian cards and the final report — those render it.)
 - Application stream: **Goodfire only.** Don't tailor framing toward any other stream.
 - Time budget per the prompt: ~1h setup (tutorials), 1–2h experimenting. Don't over-engineer; mentors care about thought process and proposed experiments, not polish.
 - Work happens in `main_experiments.ipynb` at the repo root. Treat `bilinear-decomposition/` as read-only upstream — don't edit, just import.
+- **Experiment plans live in `experiment_plans/`.** Every new experiment idea — before any code — gets a markdown plan copied from `experiment_template.md`. Template forces you to articulate (a) how the approach addresses each of the five targets [short, interpretable, fidelity, sharing, orthogonality] and (b) which of the three intervention levels [decomposition family / parameterization / loss] it touches. Plans are the design artifact mentors will read; the notebook is just the execution.
+- **Figures live in `figures/`.** Each experiment's plan references a `figures/fig_<name>.png`. When you mark a plan `Status: run`, the figure must exist on disk.
+- **Maintenance check.** `scripts/check_experiments_figures.py` walks every plan and asserts that `Status: run` ↔ figure-exists. It runs automatically as a Stop hook (see `.claude/settings.json`) at the end of every session — if it fails, fix the drift before handoff (either save the figure or downgrade the status). Run manually anytime: `python3 scripts/check_experiments_figures.py`.
 
 ## Dev commands
 ```bash
@@ -55,12 +70,23 @@ Scaffolded from `~/Developer/agent-scaffold`. The upstream `bilinear-decompositi
 
 You are one of many short-lived Claude sessions working on this project. The user relies on Claude to write code — knowledge must transfer between sessions via docs, not memory. You will not remember prior conversations. The docs are your memory.
 
-### Before starting work
-1. Read `INDEX.md` to understand the repo layout.
-2. Read `PLAN.md` to see what's done and what's next.
-3. Read `LOG.md` (latest entry) to understand where the last session left off.
-4. Read any `*_REFERENCE.md` files listed in `INDEX.md` before writing code that touches those domains. Do not guess at APIs or platform behavior — it's documented there for a reason.
-5. Read `task-decomposing-weights.pdf` if you have not internalized the prompt.
+### Before starting work — required reading
+
+**Project state (every session, no exceptions):**
+1. `INDEX.md` — repo layout.
+2. `PLAN.md` — what's done, what's next.
+3. `LOG.md` (latest entry) — where the previous session left off.
+4. Any `*_REFERENCE.md` files listed in `INDEX.md` relevant to your task. Don't guess at APIs / platform behavior — it's documented for a reason.
+5. `task-decomposing-weights.pdf` — the MARS V prompt, if you haven't internalized it.
+
+**Substantive context (every session — these are short, read them all):**
+6. `bilinear-decomposition/tutorials/0_introduction.ipynb` ("0-tutorial") — Thomas's bilinear MLP basics + per-class eigendecomposition. The math everything else extends.
+7. `bilinear-decomposition/tutorials/1_image.ipynb` ("1-images") — MNIST classifier setup, interaction tensor `B`, the visualization workflow we copy.
+8. `bilinear-decomposition/exercises/0_decomposition.ipynb` ("0-exps", a.k.a. "Thomas's code") — the skeleton CP decomposition we're extending. Skim the `Sparse` class and the training loop.
+9. `main_experiments.ipynb` — *our* primary notebook. See its current state before adding cells.
+10. `experiment_plans/` — every existing experiment plan. New experiments go here as `experiment_NN_<slug>.md`, copied from `experiment_template.md`. The template lists the five evaluation targets (short, interpretable, fidelity, sharing, orthogonality) and the three intervention levels (decomposition family, parameterization, loss) — every plan must address both.
+
+Don't skip items 6–10 because "you read them last session." You didn't — you're a new session.
 
 ### During work
 

@@ -176,21 +176,20 @@ There is no single "interpretability score." The combination of these criteria i
 
 ## 10. Experimental design
 
-Four experiments, each modifying the baseline at one or more of the three levels.
+Four experiments, each modifying the baseline at one or more of the three levels. **The full plan for each lives in its own file under `experiment_plans/`** — see the template (`experiment_plans/experiment_template.md`) for the required structure (5 targets × 3 intervention levels). Summarized here:
 
-**Experiment 1: Baseline.** Skeleton unmodified. Pure CP decomposition with cosine similarity loss, `rank=64`, 200 steps. Establishes what "sharing alone" gets you, without any interpretability prior.
+| # | Plan | One-line summary | Levels touched |
+|---|------|------------------|----------------|
+| 1 | `experiment_plans/experiment_01_baseline.md` | Pure CP, cosine loss, no priors. Sharing-only result | L1 |
+| 2 | `experiment_plans/experiment_02_l1_sweep.md` | L1 on `L,R`, sweep `α ∈ {0.001, 0.01, 0.1}` for spatial localization | L3 |
+| 3 | `experiment_plans/experiment_03_symmetric_cp.md` | Tie `L = R` + best α from Exp. 2; remove L/R swap ambiguity | L1 + L2 + L3 |
+| 4 | `experiment_plans/experiment_04_nonnegativity.md` | Squared parameterization `L_eff = L²` + L1; parts-based components | L2 + L3 |
 
-**Experiment 2: L1 sparsity sweep on `L, R`.** Add an L1 penalty on the input-pattern factors. Sweep `α ∈ {0.001, 0.01, 0.1}`. Hypothesis: components become spatially localized, looking more like stroke or edge detectors. Trade-off: reconstruction fidelity decreases as `α` increases.
+When proposing a *new* experiment, copy `experiment_plans/experiment_template.md` to `experiment_plans/experiment_NN_<slug>.md` and fill it in *before* writing notebook cells. This is the design artifact the mentors will read — the notebook is just the execution.
 
-This is the "dictionary learning" approach the paper recommends — standard sparse coding applied to the tensor decomposition.
-
-**Experiment 3: Symmetric CP + L1.** Tie `L = R` during training. Combined with the best `α` from Experiment 2. Hypothesis: tied factors give cleaner components by removing the `L/R` swap ambiguity, at no cost in reconstruction.
-
-Implementation note: the cleanest way to enforce symmetry is to use a single parameter matrix in the model. In a hack-style implementation, we copy `L` into `R` before each forward pass.
-
-**Experiment 4: Non-negativity + L1.** Apply squared parameterization `L_eff = L²`, `R_eff = R²` before computing reconstruction. Components become additive — no red-blue cancellation. Combined with L1 sparsity. Hypothesis: produces parts-based representations (stroke detectors as additive masks) rather than contrast-based representations (XOR-like edge detectors).
-
-Implementation note: non-negativity must apply to the *reconstruction* not just the *penalty*. This requires modifying how the `Sparse` class computes its forward pass, or monkey-patching the similarity computation.
+Implementation notes (kept here because they cut across experiments):
+- For symmetric CP (#3), cleanest is a single parameter matrix; hack-style is to copy `L → R` before each forward pass.
+- For non-negativity (#4), the squaring must apply to the *reconstruction*, not just the penalty — modify the `Sparse` forward or monkey-patch the similarity computation.
 
 ## 11. Notebook structure
 
