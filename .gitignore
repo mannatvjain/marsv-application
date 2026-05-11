@@ -19,7 +19,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# Plot exports
-fig_*.png
+# CSV exports — allow only the canonical summary
 *.csv
 !canonical_results.csv
